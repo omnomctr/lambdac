@@ -80,6 +80,7 @@ static void _finalize(Term *t, uint32_t depth, Arena *a, struct IndexTable *idx_
     case LAMBDA_TERM: {
         char ident = t->as.lambda.arg->as.variable.c;
         t->as.lambda.arg->as.variable_finalized.i = depth;
+        t->as.lambda.arg->finalized = true;
         struct IndexTable *idx_table_ = arena_alloc(a, sizeof(struct IndexTable));
         *idx_table_ = (struct IndexTable) {
             .c = ident,
