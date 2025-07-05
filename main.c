@@ -10,32 +10,31 @@
 
 int main(int argc, char *argv[]) 
 {
-    Arena *a = arena_new(ARENA_DEFAULT_SIZE);
-
-    term_print(application_new(a, lambda_new(a, variable_new(a, 'x'), variable_new(a, 'x')), variable_new(a, 'y')));
-
-    arena_destroy(a);
-    putchar('\n');
-
     Arena *parser_arena = arena_new(1024);
 
     using_history();
+    rl_variable_bind("blink-matching-paren", "On");
     for (;;) {
         char *line = readline("λ> ");
         if (line == NULL) break;
 
         add_history(line);
 
-        ZStrReader zstr_reader = zstrreader_new(line);
-        Parser *p = parser_new(parser_arena, zstrreader_to_reader(&zstr_reader));
+        ZStrReader reader = zstrreader_new(line);
+        Parser *p = parser_new(parser_arena, zstrreader_to_reader(&reader));
         Term *t = parse_term(p);
         if (t) {
+            printf("lambda term:\n\t");
+            term_print(t);
+            putchar('\n');
+
+            term_finalize(t);
+            printf("finalized w/ de bruijn indexing:\n\t");
             term_print(t);
             putchar('\n');
         }
 
         arena_clear(parser_arena);
-
         free(line);
     }
 

@@ -2,6 +2,8 @@
 #define DATA_HEADER__ 
 
 #include "arena.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 typedef struct Term Term;
 struct Term {
@@ -11,6 +13,8 @@ struct Term {
         APPLICATION_TERM,
     } kind;
 
+    bool finalized;
+
     union {
         struct {
             Term *arg;
@@ -19,6 +23,9 @@ struct Term {
         struct {
             char c;
         } variable;
+        struct {
+            uint32_t i;
+        } variable_finalized;
         struct {
             Term *lhs;
             Term *rhs;
@@ -30,6 +37,10 @@ Term *lambda_new(Arena *a, Term *arg, Term *body);
 Term *variable_new(Arena *a, char c);
 Term *application_new(Arena *a, Term *lhs, Term *rhs);
 
+// finalize w/ de bruijn indexing
+void term_finalize(Term *t);
+
 void term_print(Term *t);
+bool term_equal(Term *lhs, Term *rhs);
 
 #endif
