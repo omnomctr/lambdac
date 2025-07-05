@@ -1,0 +1,4 @@
+Term ::= Lambda | Variable | Application | '(' Term ')'
+Variable ::= [a..z]|[A..Z]
+Lambda ::= '\' Variable '.' Term
+Application ::= Term Term
