@@ -62,37 +62,34 @@ struct IndexTable {
     struct IndexTable *next; /* nullable */
 };
 
-static void _finalize(Term *t, uint32_t depth, Arena *a, struct IndexTable *idx_table);
+static void _finalize(Term *t, uint32_t depth, struct IndexTable *idx_table);
 static uint32_t _get_term_depth(Term *t);
 
 void term_finalize(Term *t)
 {
    int32_t depth = _get_term_depth(t); 
 
-   Arena *a = arena_new(1024);
-   _finalize(t, depth, a, NULL);
-   arena_destroy(a);
+   _finalize(t, depth, NULL);
 }
 
-static void _finalize(Term *t, uint32_t depth, Arena *a, struct IndexTable *idx_table)
+static void _finalize(Term *t, uint32_t depth, struct IndexTable *idx_table)
 {
     switch (t->kind) {
     case LAMBDA_TERM: {
         char ident = t->as.lambda.arg->as.variable.c;
         t->as.lambda.arg->as.variable_finalized.i = depth;
         t->as.lambda.arg->finalized = true;
-        struct IndexTable *idx_table_ = arena_alloc(a, sizeof(struct IndexTable));
-        *idx_table_ = (struct IndexTable) {
+        struct IndexTable idx_table_ = (struct IndexTable) {
             .c = ident,
             .index = depth,
             .next = idx_table,
         };
         t->finalized = true;
-        _finalize(t->as.lambda.body, depth - 1, a, idx_table_);
+        _finalize(t->as.lambda.body, depth - 1, &idx_table_);
     } break;
     case APPLICATION_TERM: {
-        _finalize(t->as.application.lhs, depth, a, idx_table);
-        _finalize(t->as.application.rhs, depth, a, idx_table);
+        _finalize(t->as.application.lhs, depth, idx_table);
+        _finalize(t->as.application.rhs, depth, idx_table);
         t->finalized = true;
     } break;
     case VARIABLE_TERM: {
